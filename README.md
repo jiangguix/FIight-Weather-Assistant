@@ -8,4 +8,4 @@ Flight-Weather-Assistant is implemented in Python 2.7, use PyQt to create the Us
 - PyQt4
 - Beautifulsoup from bs4
 # Example
-![](Sreenshots/example.png)
+![example pic](https://github.com/jiangguix/Flight-Weather-Assistant/Screenshots/example.png)
