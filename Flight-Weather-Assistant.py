@@ -12,7 +12,7 @@ import category_v2 as cat
 import re
 
 # qtCreatorFile = "D:\python\myfiles\\continental\\continental_v2.ui" # Enter file here.
-qtCreatorFile = "D:\Programs\python2.7\myfile\\continental_v2.ui" # Enter file here.
+qtCreatorFile = "D:\Programs\python2.7\myfile\\continental_v3.ui" # Enter file here.
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
@@ -102,10 +102,11 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
 		#逐条处理每个机场：
 		i = 0
 		textresult = ''
+		texttafraw = ''
 		for airport, airtime in t.items():
 			try:
 				print airport, airtime
-				result = cat.decompose(airport, airtime[0][:2], airtime[1][:2])
+				result, tafraw = cat.decompose(airport, airtime[0][:2], airtime[1][:2])
 
 				if len(result) > 1:
 					#将时段内每个小时的天气状态整理到result[0]中：
@@ -229,7 +230,7 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
 				resultvis = ''
 				if len(result[0]['vis'])>1:
 					vis = cat.find_min(result[0]['vis'])
-					if vis < 3000:
+					if vis < 1600:
 						resultvis = '能见度'  + str(vis) + '米，'
 
 				#整理成最终语句：
@@ -262,16 +263,22 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
 					resultsum = '轻雾' + resultsum.strip('晴')
 
 				resultsum = str(i+1)+'. '+airport+'  '+airtime[0]+' - '+airtime[1]+'  '+resultsum+'。'
+				tafraw = str(i+1) + '. ' + tafraw + '='
 
 			except Exception as e:
-				resultsum = str(i+1)+'. '+airport+'  '+str(e)
+				resultsum = str(i+1)+'. '+airport+'  '+u'请求超时'
+				tafraw = str(i+1) + '. ' + u'请求超时'
 				traceback.print_exc()
 
 			i += 1
 			textresult = textresult + resultsum + '\n'
+			texttafraw = texttafraw + tafraw + '\n\n'
 
 		self.result_window.clear()
 		self.result_window.insertPlainText(textresult)
+
+		self.result_window_2.clear()
+		self.result_window_2.insertPlainText(texttafraw)
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
