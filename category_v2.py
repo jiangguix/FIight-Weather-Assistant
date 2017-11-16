@@ -192,18 +192,23 @@ def decompose(airport, inputtstart, inputtend):
 		taf.append(char + tafraw)
 	else:
 		url = 'https://www.aviationweather.gov/metar/data?ids=' + airport + '&format=raw&date=0&hours=0&taf=on'
+		#headers = {'User-agent' : 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0'}
 		request = urllib2.Request(url=url)
 		response = urllib2.urlopen(request, timeout=30)
 		result = response.read()
 
 		html = BeautifulSoup(result,'lxml')
-		taf = html.code.get_text()
+		tafraw = html.code.get_text()
 
+		taf = tafraw
 		title = ['TAF COR', 'TAF AMD', 'TAF']
 		for item in title:
 			if item in taf:
 				taf = taf.strip(item)
 		taf = taf.split(u' \xa0\xa0')
+
+	#保存原始报文用于输出：
+	tafraw = tafraw.replace(u' \xa0\xa0','\n    ')
 
 	#有些国外报文最后会有INTER变化项，INTER和TEMPO类似，但INTER表示波动的时间长度在30分钟以内，TEMPO在30-60分钟
 	if 'INTER' in taf[-1]:
@@ -231,7 +236,7 @@ def decompose(airport, inputtstart, inputtend):
 			for j in range(indstart,len(condition)):
 				condition[j] = analyze(taf[i].split(' ',1)[1])
 
-		if ('TEMPO' in taf[i]) or ('PROB' in taf[i]):
+		if ('TEMPO' in taf[i]) or ('PROB40' in taf[i]):
 			#有些国家报文TEMPO前加PROB，在ADDS上就会显示一行PROB空行，去掉该空行：
 			if len(taf[i].split()) == 1:
 				continue
@@ -290,7 +295,7 @@ def decompose(airport, inputtstart, inputtend):
 	for i in range(indst+1,inded+1):
 		if condition[i] != result[-1]:
 			result.append(condition[i])
-	return result
+	return result, tafraw
 
 #核心2，从accuweather网站上爬取温度预报信息，返回某一时刻温度：
 def temperature(airport, t):
@@ -324,9 +329,10 @@ def temperature(airport, t):
 
 	url = 'https://www.accuweather.com/en/cn/' + airport + '/' + aircode[airport] +\
 			'_poi/hourly-weather-forecast/' + aircode[airport] + '_poi?hour=' + str(hour)
+	headers = {'User-agent' : 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0'}
 
 	print url
-	request = urllib2.Request(url=url)
+	request = urllib2.Request(url=url, headers = headers)
 	response = urllib2.urlopen(request, timeout=30)
 	result = response.read()
 
