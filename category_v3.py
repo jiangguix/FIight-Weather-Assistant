@@ -229,7 +229,13 @@ def decompose(airport, inputtstart, inputtend):
 	for i in range(timespan):
 		condition.append(analyze(taf[0].split(' ',3)[3]))
 
-	for i in range(1,len(taf)):
+	i = 1
+	while i<len(taf):
+		#有些国家报文TEMPO前加PROB，在ADDS上就会显示一行PROB空行，如遇到PROB30占一空行的情况，表示其后跟的tempo是30%概率的天气，通过i+=2跳过当前PROB行和其后tempo行：
+		if 'PROB30' in taf[i] and len(taf[i].split())==1:
+			i+=2
+			continue
+
 		if 'FM' in taf[i]:
 			timemark = time_analyze(taf[i].strip()[2:4],taf[i].strip()[4:6])
 			indstart = (timemark-timestart).days*24 + (timemark-timestart).seconds/3600
@@ -237,7 +243,7 @@ def decompose(airport, inputtstart, inputtend):
 				condition[j] = analyze(taf[i].split(' ',1)[1])
 
 		if ('TEMPO' in taf[i]) or ('PROB40' in taf[i]):
-			#有些国家报文TEMPO前加PROB，在ADDS上就会显示一行PROB空行，去掉该空行：
+			#有些国家报文TEMPO前加PROB，在ADDS上就会显示一行PROB空行，跳过该空行：
 			if len(taf[i].split()) == 1:
 				continue
 
@@ -280,6 +286,7 @@ def decompose(airport, inputtstart, inputtend):
 						condition[j][key] = conditiontem[key] + ' ' + condition[j][key][indtemp:]
 					elif len(conditiontem[key])>1:
 						condition[j][key] = conditiontem[key]
+		i+=1
 
 	timest, timeed = time_analyze_2(inputtstart+inputtend, taf[0].split()[2][:4])
 	#如果给定机场时间超过报文预报截至时间，则截断到报文截至时间

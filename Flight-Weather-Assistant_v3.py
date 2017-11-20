@@ -8,7 +8,7 @@ import traceback
 from collections import OrderedDict
 from PyQt4 import QtCore, QtGui, uic
 
-import category_v2 as cat
+import category_v3 as cat
 import re
 
 # qtCreatorFile = "D:\python\myfiles\\continental\\continental_v2.ui" # Enter file here.
@@ -248,30 +248,32 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
 				else:
 					resultsum = resultwx + resultvis + resultwd
 
-				#给出起飞落地机场温度：
+				#一般情况下，轻雾造成的能见度不会太低，以上对轻雾天气不做处理，但当轻雾造成能见度3000以下，又无其它天气现象时，需要提醒轻雾。
+				if '能见度' in resultsum and '晴，' in resultsum:
+					resultsum = '轻雾' + resultsum.strip('晴')
+
+				resultsum = str(i+1)+'. '+airport+'  '+airtime[0]+' - '+airtime[1]+'  '+resultsum
+				tafraw = str(i+1) + '. ' + tafraw + '='
+
+			except Exception as e:
+				resultsum = str(i+1)+'. '+airport+'  '+u'！！！报文请求超时'
+				tafraw = str(i+1) + '. ' + u'！！！报文请求超时'
+				traceback.print_exc()
+
+			#给出起飞落地机场温度：
+			try:
 				if i == 0:
-					print i
 					resulttemp = cat.temperature(airport, self.time_convert(int(self.depature_t.text()))[1])
 					resultsum = resultsum + '，预飞时刻气温约' + resulttemp + '℃'
 				if i == 1:
 					print i
 					resulttemp = cat.temperature(airport, self.time_convert(int(self.dest_t.text()))[1])
 					resultsum = resultsum + '，预达时刻气温约' + resulttemp + '℃'
-
-				#一般情况下，轻雾造成的能见度不会太低，以上对轻雾天气不做处理，但当轻雾造成能见度3000以下，又无其它天气现象时，需要提醒轻雾。
-				if '能见度' in resultsum and '晴，' in resultsum:
-					resultsum = '轻雾' + resultsum.strip('晴')
-
-				resultsum = str(i+1)+'. '+airport+'  '+airtime[0]+' - '+airtime[1]+'  '+resultsum+'。'
-				tafraw = str(i+1) + '. ' + tafraw + '='
-
 			except Exception as e:
-				resultsum = str(i+1)+'. '+airport+'  '+u'请求超时'
-				tafraw = str(i+1) + '. ' + u'请求超时'
-				traceback.print_exc()
+				resultsum = resultsum + '，！！！accuweather请求超时'
 
 			i += 1
-			textresult = textresult + resultsum + '\n'
+			textresult = textresult + resultsum + '。' + '\n'
 			texttafraw = texttafraw + tafraw + '\n\n'
 
 		self.result_window.clear()
