@@ -245,6 +245,7 @@ def decompose(airport, inputtstart, inputtend):
 		if ('TEMPO' in taf[i]) or ('PROB40' in taf[i]):
 			#有些国家报文TEMPO前加PROB，在ADDS上就会显示一行PROB空行，跳过该空行：
 			if len(taf[i].split()) == 1:
+				i+=1
 				continue
 
 			#但有时候格式会变为：PROB40 0810这种情况：

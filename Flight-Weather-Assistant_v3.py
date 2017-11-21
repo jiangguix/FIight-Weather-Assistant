@@ -12,7 +12,7 @@ import category_v3 as cat
 import re
 
 # qtCreatorFile = "D:\python\myfiles\\continental\\continental_v2.ui" # Enter file here.
-qtCreatorFile = "D:\Programs\python2.7\myfile\\continental_v3.ui" # Enter file here.
+qtCreatorFile = "continental_v3.ui" # Enter file here.
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
