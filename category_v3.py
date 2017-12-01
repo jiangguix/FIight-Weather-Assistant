@@ -208,7 +208,7 @@ def decompose(airport, inputtstart, inputtend):
 	#保存原始报文用于输出：
 	tafraw = tafraw.replace(u' \xa0\xa0','\n    ')
 
-	#有些国外报文最后会有INTER变化项，INTER和TEMPO类似，但INTER表示波动的时间长度在30分钟以内，TEMPO在30-60分钟
+	#有些国外报文最后会有INTER变化项，INTER和TEMPO类似，但INTER表示波动的时间长度在30分钟以内，TEMPO在30-60分钟，将INTERN替换为TEMPO
 	if 'INTER' in taf[-1]:
 		temp = taf[-1].split('INTER')
 		taf[-1] = temp[0]
@@ -234,7 +234,6 @@ def decompose(airport, inputtstart, inputtend):
 			if 'TEMPO' in taf[i+1]:
 				taf[i+1] = taf[i+1].strip('TEMPO')
 			taf[i+1] = 'PROB30 ' + taf[i+1]
-			print taf[i+1]
 			i+=1
 			continue
 
