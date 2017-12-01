@@ -168,8 +168,6 @@ def time_analyze_2(t_text, t_flag): #用于分析无日期出现的时间组，�
 #核心1：从ADDS网站爬取TAF报并进行分解
 #返回一个数组，长度为TAF报预报时长，每个元素为一个condition字典，代表这个小时的风、能见度、云、天气状态。
 def decompose(airport, inputtstart, inputtend):
-	# if airport == 'ZGSD':
-	# 	return 
 	
 	#对于没有参与国际交换的南昌机场，从青岛空管网址爬取报文：
 	if airport == 'ZSCN':
@@ -231,9 +229,13 @@ def decompose(airport, inputtstart, inputtend):
 
 	i = 1
 	while i<len(taf):
-		#有些国家报文TEMPO前加PROB，在ADDS上就会显示一行PROB空行，如遇到PROB30占一空行的情况，表示其后跟的tempo是30%概率的天气，通过i+=2跳过当前PROB行和其后tempo行：
+		#有些国家报文TEMPO前加PROB，在ADDS上就会显示一行PROB空行，如遇到PROB30占一空行的情况，则跳过该行并将其下一行的TEMPO替换为PROB30：
 		if 'PROB30' in taf[i] and len(taf[i].split())==1:
-			i+=2
+			if 'TEMPO' in taf[i+1]:
+				taf[i+1] = taf[i+1].strip('TEMPO')
+			taf[i+1] = 'PROB30 ' + taf[i+1]
+			print taf[i+1]
+			i+=1
 			continue
 
 		if 'FM' in taf[i]:
@@ -242,8 +244,8 @@ def decompose(airport, inputtstart, inputtend):
 			for j in range(indstart,len(condition)):
 				condition[j] = analyze(taf[i].split(' ',1)[1])
 
-		if ('TEMPO' in taf[i]) or ('PROB40' in taf[i]):
-			#有些国家报文TEMPO前加PROB，在ADDS上就会显示一行PROB空行，跳过该空行：
+		if ('TEMPO' in taf[i]) or ('PROB40' in taf[i]) or ('PROB30' in taf[i]):
+			#有些国家报文TEMPO前加PROB40，在ADDS上就会显示一行PROB空行，跳过该空行：
 			if len(taf[i].split()) == 1:
 				i+=1
 				continue
@@ -305,6 +307,7 @@ def decompose(airport, inputtstart, inputtend):
 			result.append(condition[i])
 	return result, tafraw
 
+# print decompose('YMML', '00', '04')[0]
 #核心2，从accuweather网站上爬取温度预报信息，返回某一时刻温度：
 def temperature(airport, t):
 

@@ -121,8 +121,7 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
 								elif (result[0][key].strip() in ['','BR','FU','HZ']):
 									result[0][key] = result[j][key]
 								#如果之前不为空，变化后为空，则不处理
-					result = [result[0]]
-				print result
+				print result[0]
 				
 				#判断天气：
 				resultwx = ''
@@ -136,8 +135,11 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
 					wx.pop(wx.index('TEMPO:'))
 
 				for item in wx:
-					if ('TEMPO' in item) or ('PROB' in item):
+					if ('TEMPO' in item):
 						resultwx += '短时'
+						continue
+					if ('PROB30' in item):
+						resultwx += '30%概率'
 						continue
 					if 'turn:' in item:
 						resultwx += '转'
@@ -208,13 +210,18 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
 
 					for item in ['TEMPO:','PROB40:','PROB30:']:
 						if item in result[0]['wind'].split():
+							if item =='PROB30:':
+								conj = '，30%概率短时'
+							else:
+								conj = '，短时'
+
 							temp = result[0]['wind'].split(item)[1]
 							if 'VRB' in temp and cat.winddecode(temp.strip())[1]!='微风':
 								winddir, windmag = cat.winddecode(temp.strip())
-								resultwd = resultwd + '，短时大' + windmag
+								resultwd = resultwd + conj+'大' + windmag
 							elif cat.winddecode(temp.strip())[1]!='微风':
 								winddir, windmag = cat.winddecode(temp.strip())
-								resultwd = resultwd + '，短时' + winddir + windmag
+								resultwd = resultwd + conj + winddir + windmag
 				else:
 					winddir, windmag = cat.winddecode(result[0]['wind'].strip())
 					if windmag == '微风':
@@ -230,8 +237,23 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
 				resultvis = ''
 				if len(result[0]['vis'])>1:
 					vis = cat.find_min(result[0]['vis'])
-					if vis < 1600:
-						resultvis = '能见度'  + str(vis) + '米，'
+					#对于起降机场和目的地备降场，标准都按1600米算
+					if (i<2 or i>=len(t)-2) and vis < 1600:
+						resultvis = '能见度'  + str(vis) + '米左右，'
+					#对于ETOPS航路备降场，标准按3300算
+					if (i>=2 and i<len(t)-2) and vis < 3300:
+						resultvis = '能见度'  + str(vis) + '米左右，'
+					#当能见度低于阈值时，且无FZ相关天气时，应提及天气现象中的轻雾、烟等现象
+					if len(resultvis) != 0:
+						visweath = ['BR','HZ','FU']
+						for item in visweath:
+							if item in result[0]['weather'] and 'FG' not in result[0]['weather']:
+								resultvis = weathertype[item] + '，' + resultvis
+					if len(resultvis)!=0:
+						if 'TEMPO' in result[0]['vis']:
+							resultvis = '短时' + resultvis
+						if 'PROB30' in result[0]['vis']:
+							resultvis = '30%概率短时' + resultvis
 
 				#整理成最终语句：
 				if (resultwx.find('短时') == 0):
@@ -247,10 +269,6 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
 					resultsum = resultwx + resultcld + resultvis + resultwd
 				else:
 					resultsum = resultwx + resultvis + resultwd
-
-				#一般情况下，轻雾造成的能见度不会太低，以上对轻雾天气不做处理，但当轻雾造成能见度3000以下，又无其它天气现象时，需要提醒轻雾。
-				if '能见度' in resultsum and '晴，' in resultsum:
-					resultsum = '轻雾' + resultsum.strip('晴')
 
 				resultsum = str(i+1)+'. '+airport+'  '+airtime[0]+' - '+airtime[1]+'  '+resultsum
 				tafraw = str(i+1) + '. ' + tafraw + '='
