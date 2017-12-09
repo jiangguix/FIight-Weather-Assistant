@@ -136,7 +136,7 @@ class MyApp(QtGui.QMainWindow, Ui_MainWindow):
 						wx.pop(wx.index(item))
 
 				for item in wx:
-					if ('TEMPO' in item):
+					if ('TEMPO' in item) or ('PROB40' in item):
 						resultwx += '短时'
 						continue
 					if ('PROB30' in item):
